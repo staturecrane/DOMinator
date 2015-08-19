@@ -4,7 +4,6 @@ class shitConstructor {
     
     constructor(){
         this.elements = [];
-        this.child = void 0;
     }
 
 } 
