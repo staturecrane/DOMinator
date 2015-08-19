@@ -4,7 +4,7 @@ A functional and reactive Javascript library which will eventually allow you to 
 
 #Current Use
 
-,,,
+```javascript
 
 import { noShit } from './noshit.js';
 
@@ -21,4 +21,4 @@ Component
         .appendNth('h1', 'this is some text')
     .renderHTML();
     
-,,,
+```
