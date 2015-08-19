@@ -16,9 +16,9 @@ Component
     .append('div')
         .appendNth('div')
             .appendNth('span')
-                .appendNth('h1', 'this is a child of ^')
+                .appendNth('h1', 'this is a child of ^span')
     .append('span')
-        .appendNth('h1', 'this is some text')
+        .appendNth('h1', 'this is child of ^span')
     .renderHTML();
     
 ```
