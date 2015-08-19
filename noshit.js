@@ -5,7 +5,7 @@ class shitConstructor {
     constructor(){
         this.elements = [];
     }
-
+    
 } 
 
 class noShit extends shitConstructor {
@@ -29,7 +29,6 @@ class noShit extends shitConstructor {
     }
     
     append(node, text = void 0){
-        console.log(this.elements[this.elements.length-1]);
         this.elements[this.elements.length-1]
             .appendChild(this.createText(node,text));
         return this;
@@ -54,11 +53,12 @@ class noShit extends shitConstructor {
             this.elements.forEach(function(els){
                 document.body.appendChild(els); 
             });
-            return;
+            return this;
         }
         component.elements.forEach(function(els){
             document.body.appendChild(els);
-        })
+        });
+        return this;
     }
 }
 
