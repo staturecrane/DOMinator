@@ -55,7 +55,6 @@ class noShit extends shitConstructor {
     }
     
     retreat(){
-        console.log('retreat!');
         this.childLevel -= 1
         return this;
     }
@@ -97,4 +96,4 @@ class shitStore extends noShit{
     }
 }
 
-export { noShit };
+export { noShit, shitStore };
