@@ -36,8 +36,8 @@ Component
         'placeholder':'this is a placeholder'
     })
     .create('ul')
-        .append('li', 'this should be fairly explanatory')
-        .append('li', 'still pretty explanatory')
+        .append('li', 'this should be fairly self-explanatory')
+        .append('li', 'still pretty self-explanatory')
     .create('div')
         .append('span')
             .appendNth('h1', 'I am a child of the ^span')
