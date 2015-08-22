@@ -24,16 +24,20 @@ Component
         'class': 'container'
     })
         .append('h1', 'I am a child of a div', {
-            'class': 'notFruit'
+            'class': 'row notFruit'
         })
         .append('h2', 'I am also a child of the div', {
-            'class': 'fruit'
+            'class': 'fruit col-sm-12'
         })
     .create('span')
         .append('p', 'this is paragraph, child of ^span')
+    .create('input', 'this is an input', {
+        'type':'text',
+        'placeholder':'this is a placeholder'
+    })
     .create('ul')
-        .append('li', 'this should be fairly self-explanatory')
-        .append('li', 'still pretty self-explanatory')
+        .append('li', 'this should be fairly explanatory')
+        .append('li', 'still pretty explanatory')
     .create('div')
         .append('span')
             .appendNth('h1', 'I am a child of the ^span')
