@@ -15,7 +15,7 @@ class noShit extends shitConstructor {
     }
     
     createText(node, text = void 0){
-        let n = document.createElement(node);
+        let n = document.createElement(node.toUpperCase());
         if (!!text){
             let p = document.createTextNode(text);
             n.appendChild(p);
@@ -23,7 +23,7 @@ class noShit extends shitConstructor {
         return n;
     }
     
-    createTextElement(node, text = void 0){
+    create(node, text = void 0){
         this.elements
             .push(this.createText(node,text));
         return this;
@@ -33,6 +33,9 @@ class noShit extends shitConstructor {
         let child = this.elements[this.elements.length-1];
         if (!!child.children.length > 0 && this.childLevel > -1){
             child = child.children[childLevel];
+        }
+        if (child.nodeName === "#text"){
+            child = child.parentNode;
         }
         child
             .appendChild(this.createText(node,text));
@@ -44,6 +47,9 @@ class noShit extends shitConstructor {
         function findChildNodes(child){
             if (child.childNodes.length > 0){
                 return findChildNodes(child.lastChild);
+            }
+            if (child.nodeName === "#text"){
+                child = child.parentNode;
             }
             return child;
         }
@@ -60,7 +66,6 @@ class noShit extends shitConstructor {
     }
     
     renderHTML(component = void 0){
-        console.log(this.elements);
         if (!component){
             this.elements.forEach(function(els){
                 document.body.appendChild(els); 
