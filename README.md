@@ -13,9 +13,9 @@ import { noShit } from './noshit.js';
 let Component = new noShit;
 
 ```
-**Component.create** creates an element on the body (or whatever node you pass into renderHTML), and takes a tag (div, h1, p, etc ...), text (if making a text node), and an options object, which defines any HTML attributes you would like on the element. Your options are rendered as HTML as you write them, so all standard rules apply.
+**Component.create(tag, text, attributesObject)** creates an element on the body (or whatever node you pass into renderHTML), and takes a tag (div, h1, p, etc ...), text (if making a text node), and an object which defines any HTML attributes you would like on the element. Your options are rendered as HTML as you write them, so all standard rules apply.
 
-**Component.append** adds a sister child to the current element, while **Component.appendNth** creates a child on the current element. **Component.retreat** backs up one element level. This allows you to nest elements in any heirarchy, child-parent relationship you like.
+**Component.append(tag, text, attributesObject)** adds a sister child to the current element, while **Component.appendNth(tag, text, attributesObject)** creates a child on the current element. **Component.retreat()** backs up one element level. This allows you to nest elements in any heirarchy, child-parent relationship you like.
 
 ```javascript
 
