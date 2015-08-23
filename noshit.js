@@ -5,6 +5,7 @@ class shitConstructor {
     constructor(){
         this.elements = [];
         this.childLevel = -1;
+        this.store = new Map();
     }
     
 }
@@ -18,7 +19,7 @@ class noShit extends shitConstructor {
         let opt = '';
         if (!!options){
             for (let x in options){
-                opt += (x + '=' + options[x] + ' ');
+                opt += (x + '=' + '"' + options[x] + '"' + ' ');
             }    
         }
         let n;
@@ -35,7 +36,6 @@ class noShit extends shitConstructor {
         n += '</' + node + '>';
         div.innerHTML = n;
         var el = div.firstChild;
-        console.log(el);
         return el;
         
     }
@@ -46,20 +46,22 @@ class noShit extends shitConstructor {
         return this;
     }
     
-    append(node, text = void 0, options = void 0, childLevel = this.childLevel){
+    retrieveLastChild(childLevel){
         let child = this.elements[this.elements.length-1];
-        console.log()
         if (!!child.children.length > 0 && this.childLevel > -1){
             child = child.children[childLevel];
         }
         if (child.nodeName === "#text"){
             child = child.parentNode;
         }
-        child
+        return child;
+    }
+    
+    append(node, text = void 0, options = void 0, childLevel = this.childLevel){
+        this.retrieveLastChild(childLevel)
             .appendChild(this.createNode(node,text,options));
         return this;
     }
-    
 
     appendNth(node, text = void 0, options = void 0){
         function findChildNodes(child){
@@ -83,40 +85,41 @@ class noShit extends shitConstructor {
         return this;
     }
     
-    renderHTML(component = void 0){
-        if (!component){
+    renderHTML(component = document.body){
             this.elements.forEach(function(els){
-                document.body.appendChild(els); 
+                component.appendChild(els); 
             });
             return this;
-        }
-        component.elements.forEach(function(els){
-            document.body.appendChild(els);
+    }
+    
+    doShit(...args){
+        let that = this;
+        args.forEach(function(func){
+           func.call(that, arguments); 
         });
         return this;
     }
-}
 
-class shitStore extends noShit{
-    constructor(){
-        super();
-        this.store = new Map();
-    }
+//store logic
     
-    emitChange(className, store){
-        document.getElementsByClassName(className).value = this.store.get(store);
-    }
-    
-    add(name, value){
+    addStore(name, value){
         this.store.set(name, value);
         return this;
     }
     
-    update(name, value, callback=this.emitChange){
-        this.add(name, value);
+    subscribeStore(atrribute, store){
+        let child = this.retrieveLastChild(this.childLevel);
+    }
+    
+    updateStore(name, value, callback=this.emitChange){
+        this.store.add(name, value);
         callback();
         return this;
     }
+    
+    getStore(store){
+        return this.store.get(store);
+    }
 }
 
-export { noShit, shitStore };
+export { noShit };
