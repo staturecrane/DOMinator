@@ -13,9 +13,9 @@ import { noShit } from './noshit.js';
 let Component = new noShit;
 
 ```
-Component.create creates an element on the body (or whatever node you pass into renderHTML), and takes a tag(div, h1, p, etc ...), optional text, and an options object, which defines any HTML attributes you would like on the element.
+**Component.create** creates an element on the body (or whatever node you pass into renderHTML), and takes a tag (div, h1, p, etc ...), text (if making a text node), and an options object, which defines any HTML attributes you would like on the element. Your options are rendered as HTML as you write them, so all standard rules apply.
 
-Component.append adds a child to the element, and Component.appendNth creates a child on the child. Component.retreat backs up one child level. This allows you to nest your elements in any heirarchy you like.
+**Component.append** adds a sister child to the current element, while **Component.appendNth** creates a child on the current element. **Component.retreat** backs up one element level. This allows you to nest elements in any heirarchy, child-parent relationship you like.
 
 ```javascript
 
@@ -52,4 +52,23 @@ Component
         .append('p', 'I am a child of the ^div')
 .renderHTML();
     
+```
+**Component.doShit(...functions)** can be executed anywhere within the chain and simply takes functions of your choosing. ***this*** is bound to the scope of the component and returns the component just like everything else. 
+
+#Store
+
+NoShitJS comes with a (soon-to-be) reactive store. *Component.addStore(storeName, value)* creates a store which holds any value you like, while *Component.getStore(storeName)* return the current value of the store. (*Note*: *Component.getStore()* does not return the component and therefore cannot be chained. Look for *Component.subscribe*, coming soon).
+
+```javascript
+
+Component
+    .addStore('far', 'and away')
+    .doShit(
+        function(){
+            console.log(this.getStore('far'));
+            this.addStore('away', 'and far');
+        }, 
+        function(){
+            console.log(this.getStore('away'));
+    })
 ```
