@@ -1,11 +1,64 @@
 "use strict";
 
+function createNode(node, text = void 0, options = void 0){
+    let subscribe = void 0;
+    let opt = '';
+    if (!!options){
+        for (let x in options){
+            let optionsX = options[x];
+            if (typeof optionsX === 'function' && !!optionsX().store){
+                if (subscribe[optionsX().store]){
+                    subscribe[optionsX().store].push({attribute: x, func: optionsX().func});
+                }
+                else {
+                    subscribe = {};
+                    subscribe[optionsX().store] = [{attribute: x, func: optionsX().func}]
+                }
+                opt += (x + '=' + '"' + optionsX.call(this,arguments).func.call(this, arguments) + '"' + ' ');
+            }
+            else {
+                opt += (x + '=' + '"' + optionsX + '"' + ' ');    
+            }
+        }    
+    }
+    let n;
+    if (!!options){
+        n = '<' + node + ' ' + opt + '>';
+    }
+    else {
+        n = '<' + node + '>';
+    }
+    let div = document.createElement('div');
+    if (!!text){
+        if (typeof text === 'function' && !!text().store){
+            text = text.call(this,arguments).func.call(this,arguments);
+        }
+        n += text;
+    }
+    n += '</' + node + '>';
+    div.innerHTML = n;
+    var el = div.firstChild;
+    return el;
+}
+
+function retrieveLastChild(elements, childLevel){
+    let child = elements[elements.length-1];
+    if (!!child.children.length > 0 && childLevel > -1){
+        child = child.children[childLevel];
+    }
+    if (child.nodeName === "#text"){
+        child = child.parentNode;
+    }
+    return child;
+}
+
 class shitConstructor {
     
     constructor(){
         this.elements = [];
         this.childLevel = -1;
         this.store = new Map();
+        this.storeCallbacks = new Map();
     }
     
 }
@@ -15,51 +68,15 @@ class noShit extends shitConstructor {
         super();
     }
     
-    createNode(node, text = void 0, options = void 0){
-        let opt = '';
-        if (!!options){
-            for (let x in options){
-                opt += (x + '=' + '"' + options[x] + '"' + ' ');
-            }    
-        }
-        let n;
-        if (!!options){
-            n = '<' + node + ' ' + opt + '>';
-        }
-        else {
-            n = '<' + node + '>';
-        }
-        let div = document.createElement('div');
-        if (!!text){
-            n += text;
-        }
-        n += '</' + node + '>';
-        div.innerHTML = n;
-        var el = div.firstChild;
-        return el;
-        
-    }
-    
     create(node, text = void 0, options = void 0){
         this.elements
-            .push(this.createNode(node,text,options));
+            .push(createNode(node,text,options));
         return this;
     }
     
-    retrieveLastChild(childLevel){
-        let child = this.elements[this.elements.length-1];
-        if (!!child.children.length > 0 && this.childLevel > -1){
-            child = child.children[childLevel];
-        }
-        if (child.nodeName === "#text"){
-            child = child.parentNode;
-        }
-        return child;
-    }
-    
     append(node, text = void 0, options = void 0, childLevel = this.childLevel){
-        this.retrieveLastChild(childLevel)
-            .appendChild(this.createNode(node,text,options));
+        retrieveLastChild(this.elements, childLevel)
+            .appendChild(createNode(node,text,options));
         return this;
     }
 
@@ -76,7 +93,7 @@ class noShit extends shitConstructor {
         this.childLevel += 1;
         let child = this.elements[this.elements.length-1].lastChild;
         findChildNodes(child)
-            .appendChild(this.createNode(node,text,options));
+            .appendChild(createNode(node,text,options));
         return this;
     }
     
@@ -102,17 +119,23 @@ class noShit extends shitConstructor {
 
 //store logic
     
-    addStore(name, value){
+    setStore(name, value){
         this.store.set(name, value);
         return this;
     }
     
-    subscribeStore(atrribute, store){
-        let child = this.retrieveLastChild(this.childLevel);
+    subscribe(store, func){
+        return function(){
+            let obj = {
+                store: store,
+                func: func
+            };
+            return obj;
+        };
     }
     
     updateStore(name, value, callback=this.emitChange){
-        this.store.add(name, value);
+        this.store.set(name, value);
         callback();
         return this;
     }
@@ -120,6 +143,7 @@ class noShit extends shitConstructor {
     getStore(store){
         return this.store.get(store);
     }
+
 }
 
 export { noShit };
