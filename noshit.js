@@ -1,7 +1,7 @@
 "use strict";
 
 function createNode(node, text = void 0, options = void 0){
-    let subscribe = void 0;
+    let subscribe = {};
     let opt = '';
     if (!!options){
         for (let x in options){
@@ -11,7 +11,6 @@ function createNode(node, text = void 0, options = void 0){
                     subscribe[optionsX().store].push({attribute: x, func: optionsX().func});
                 }
                 else {
-                    subscribe = {};
                     subscribe[optionsX().store] = [{attribute: x, func: optionsX().func}]
                 }
                 opt += (x + '=' + '"' + optionsX.call(this,arguments).func.call(this, arguments) + '"' + ' ');
