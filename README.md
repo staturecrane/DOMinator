@@ -29,13 +29,13 @@ component
         // calling 'append' next adds a sister node to the ^div
         .append('section')
             .appendNth('article')
-                .appendNth('h1', 'this is a child of the section', {
+                .appendNth('h1', 'this is a child of the article', {
                     'class': 'red-text'
                 })
                 // retreat allows you to move back the childLevel so you may append children
                 // to previous branches
                 .retreat()
-            .append('h2', 'this is a sister of the section')
+            .append('h2', 'this is a sister of the article')
 //returns HTML string. can also call dangerouslySetHTML(node) on client.
 .returnHTML();
 ```
