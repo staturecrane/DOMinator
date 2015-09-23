@@ -36,5 +36,6 @@ component
                 // to previous branches
                 .retreat()
             .append('h2', 'this is a sister of the section')
+//returns HTML string. can also call dangerouslySetHTML(node) on client.
 .returnHTML();
 ```
