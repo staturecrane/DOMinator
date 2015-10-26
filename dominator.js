@@ -1,13 +1,49 @@
-function createHTML(els){
+const events = {
+    'onclick': 'click'
+};
+
+function addCallbackEvents(callbackMap){
+    callbackMap.forEach(function(event, id){
+       for(let x in event){
+            let node = document.getElementById(id);
+            node.addEventListener(x, event[x]);
+       }
+    });
+}
+
+function replaceTextWithStore(text, func, update = void 0, subscribeArr = []){
+    let subscribe = subscribeArr;
+    let regMatch = /{{(.*?)}}/;
+    if (!update){
+        if (!text.match(regMatch)){
+            return {subscribe: subscribe, text: text}
+        }
+        let store = regMatch.exec(text)[1];
+        subscribe.push(store);
+        let newText = text.replace(regMatch, func.getStore(store));
+        return replaceTextWithStore(newText, func, void 0, subscribe);
+    }
+    else {
+        if (!text.match(regMatch)){
+            return text;
+        }
+        let store = regMatch.exec(text)[1];
+        let newText = text.replace(regMatch, func(store));
+        return replaceTextWithStore(newText, func, true);
+    }
+       
+}
+
+function createHTML(els, storeFunc){
     let newArr = [];
     let length = els.length;
     for (let x = 0; x < length; x++){
-        newArr.push(createHyperText(els[x]));
+        newArr.push(createHyperText(els[x], storeFunc));
     }
-    return flattenArray(newArr);
+    return flattenArray(newArr, storeFunc);
 }
 
-function flattenArray(arr){
+function flattenArray(arr, storeFunc){
     let string = '';
     for (let x = 0; x < arr.length; x++){
         if (Array.isArray(arr[x])){
@@ -20,13 +56,100 @@ function flattenArray(arr){
     return string;
 }
 
-function createHyperText(obj){
+function createHyperText(obj, storeFunc){
     let options = '';
-    let text = obj.text || ''; 
+    let regMatch = /{{(.*?)}}/;
+    // for purposes of updating, every element needs an id, so we ensure that
+    // it does
+    let id = !obj.options ? Math.random() : !obj.options.id ? Math.random() : obj.options.id;
+    let text = obj.text || '';
+    let store = storeFunc.getStore();
+    let callbacks = storeFunc.storeSet();
+    let eventCallbacks = storeFunc.eventCallbacks;
+    if (!!text){
+        let oldText = text;
+        if (!!regMatch.test(text)){
+            let textObject = replaceTextWithStore(text, storeFunc);
+            text = textObject.text;
+            let subscription = textObject.subscribe;
+            for (var x = 0; x < subscription.length; x++){
+                if (callbacks.has(subscription[x])){
+                    let storeMap = callbacks.get(subscription[x]);
+                    if (storeMap.has(id)){
+                        let newObj = storeMap.get(id);
+                        newObj.textContent = oldText;
+                        storeMap.set(id, newObj);
+                        callbacks.set(subscription[x], storeMap);
+                    }
+                    else {
+                        let newMap = new Map();
+                        newMap.set(id, {textContent: oldText});
+                        callbacks.set(subscription[x], newMap);
+                    }
+                }
+                else{
+                    let newCallbacksMap = new Map();
+                    newCallbacksMap.set(id, {textContent: oldText});
+                    callbacks.set(subscription[x], newCallbacksMap);
+                }
+            }
+        }
+    }
     // build string from options object
     if (!!obj.options){
+        if (!obj.options.id){
+            options += ('id=' + id + ' ');
+        }
         for (let x in obj.options){
-            options += (x + '=' + obj.options[x] + ' ');
+            if (!!events[x]){
+                if (eventCallbacks.has(id)){
+                    let callbacksObj = eventCallbacks.get(id);
+                    callbacksObj[events[x]] = obj.options[x];
+                    continue;
+                }
+                else{
+                    let callbacksObj = {};
+                    callbacksObj[events[x]] = obj.options[x];
+                    eventCallbacks.set(id, callbacksObj);
+                    continue;
+                }
+            }
+            let attribute = x;
+            if (regMatch.test(obj.options[x])){
+                // save the non-converted text, then run through replaceStore
+                let oldText = obj.options[x];
+                let attObject = replaceTextWithStore(obj.options[x], storeFunc);
+                let subscription = attObject.subscribe;
+                for (let y = 0; y < subscription.length; y++){
+                    if (callbacks.has(subscription[y])){
+                        let storeMap = callbacks.get(subscription[y]);
+                        if (storeMap.has(id)){
+                            let newObj = storeMap.get(id);
+                            newObj[attribute] = oldText;
+                            storeMap.set(id, newObj);
+                            callbacks.set(subscription[y], storeMap);
+                        }
+                        else {
+                            let newMap = new Map();
+                            let newObj = {};
+                            newObj[attribute] = oldText;
+                            newMap.set(id, newObj);
+                            callbacks.set(subscription[y], newMap);
+                        }
+                    }
+                    else{
+                        let newCallbacksMap = new Map();
+                        let newAttObj = {};
+                        newAttObj[attribute] = oldText;
+                        newCallbacksMap.set(id, newAttObj);
+                        callbacks.set(subscription[y], newCallbacksMap);
+                    }
+                }
+                options += (x + '=' + attObject.text + ' ');
+            }
+            else {
+                options += (x + '=' + obj.options[x] + ' ');
+            }
         }
     }
     // build open tag
@@ -37,7 +160,7 @@ function createHyperText(obj){
         let arr = [];
         // traverse tree and wrap all nested child arrays between tags
         for (let n = 0; n < obj.children.length; n++){
-            arr.push(createHyperText(obj.children[n]));
+            arr.push(createHyperText(obj.children[n], storeFunc));
         }
         return [open, arr, closed];
     }
@@ -52,31 +175,64 @@ class Store {
     }
     
     setStore(name, value){
+        let that = this;
         this.store.set(name, value);
-        this.emitChange(name);
-    }
-    
-    getStore(name, value){
-        return this.store.get(name, value);
-    }
-    
-    subscribe(name, func){
-        this.storeCallbacks.set(name, func);
-    }
-    
-    emitChange(name){
-        if (this.storeCallbacks.get(name)){
-            let func = this.storeCallbacks.get(name);
-            func.call(this, arguments);
+        if (this.storeCallbacks.has(name)){
+            let callbacks = this.storeCallbacks.get(name);
+            callbacks.forEach(function(obj, id){
+                for (let x in obj){
+                    let newText = replaceTextWithStore(obj[x], that);
+                    let node = document.getElementById(id);
+                    if (x === 'textContent'){
+                        node.textContent = newText.text;
+                    }
+                    else{
+                        node.setAttribute(x, newText.text);
+                    }
+                }
+            });
         }
+    }
+    
+    getStore(name){
+        return this.store.get(name);
+    }
+    
+    getSubscription(){
+        let that = this;
+        return function(name){
+            return that.getStore(name);
+        };
+    }
+    
+    callbackLogger(){
+        let that = this;
+        return function(){
+            return that.storeCallbacks;
+        }
+    }
+    
+    subscribe(storename){
+        return '{{' + storename + '}}';
+    }
+    
+    testCallbackMap(){
+        console.log(this.storeCallbacks);
     }
     
 }
 
-class DOMinator {
-    constructor(){
+class Dominator {
+    constructor(store){
+        let that = this;
         this.elements = [];
         this.childLevel = 0;
+        this.eventCallbacks = new Map();
+        this.storeGrab = {
+            getStore: store.getSubscription(),
+            storeSet: store.callbackLogger(),
+            eventCallbacks: that.eventCallbacks,
+        }
     }
     
     createNode(node, text = void 0, options = void 0){
@@ -147,13 +303,22 @@ class DOMinator {
         return this;
     }
     
-    dangerouslyRenderHTML(node){
-        node.innerHTML = createHTML(this.elements);
+    doShit(...args){
+        for (let x = 0; x < args.length; x++){
+            args[x].call(this, arguments);
+        }
+        return this;
     }
+    
+    setHTML(node){
+        node.innerHTML = createHTML(this.elements, this.storeGrab);
+        addCallbackEvents(this.eventCallbacks);
+    }
+
     
     returnHTML(){
         return createHTML(this.elements);
     }
 }
 
-export {Store, DOMinator};
+export {Store, Dominator};
