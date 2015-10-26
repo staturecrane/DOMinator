@@ -20,22 +20,6 @@ store.setStore('spanClass', 'red');
 
 let component = new Dominator(store);
 
-function changeColor(){
-    store.setStore('spanClass', 'blue');
-}
-
-function onUpClick(){
-    let count = store.getStore('up');
-    count += 1;
-    store.setStore('up', count);
-}
-
-function onDownClick(){
-    let count = store.getStore('down');
-    count -= 1;
-    store.setStore('down', count);
-}
-
 component
     .create('div')
         //Dominator allows you to subsribe to as many stores as you like
@@ -53,5 +37,21 @@ component
             onclick: changeColor
         })
 .setHTML(document.body);
+
+function changeColor(){
+    store.setStore('spanClass', 'blue');
+}
+
+function onUpClick(){
+    let count = store.getStore('up');
+    count += 1;
+    store.setStore('up', count);
+}
+
+function onDownClick(){
+    let count = store.getStore('down');
+    count -= 1;
+    store.setStore('down', count);
+}
 
 ```
