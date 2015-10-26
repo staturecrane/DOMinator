@@ -24,8 +24,7 @@ component
     .create('div')
         //Dominator allows you to subsribe to as many stores as you like
         .append('h1', 'Up: {{up}} --- Down: {{down}}', {
-            class: '{{spanClass}}',
-            'data-id': 'something more'
+            class: '{{spanClass}}'
         })
         .append('button', 'Count Up', {
             onclick: onUpClick
