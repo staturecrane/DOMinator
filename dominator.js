@@ -28,7 +28,7 @@ function replaceTextWithStore(text, func, update = void 0, subscribeArr = []){
             return text;
         }
         let store = regMatch.exec(text)[1];
-        let newText = text.replace(regMatch, func(store));
+        let newText = text.replace(regMatch, func.getStore(store));
         return replaceTextWithStore(newText, func, true);
     }
        
@@ -181,13 +181,13 @@ class Store {
             let callbacks = this.storeCallbacks.get(name);
             callbacks.forEach(function(obj, id){
                 for (let x in obj){
-                    let newText = replaceTextWithStore(obj[x], that);
+                    let newText = replaceTextWithStore(obj[x], that, true);
                     let node = document.getElementById(id);
                     if (x === 'textContent'){
-                        node.textContent = newText.text;
+                        node.textContent = newText;
                     }
                     else{
-                        node.setAttribute(x, newText.text);
+                        node.setAttribute(x, newText);
                     }
                 }
             });
@@ -303,7 +303,7 @@ class Dominator {
         return this;
     }
     
-    doShit(...args){
+    do(...args){
         for (let x = 0; x < args.length; x++){
             args[x].call(this, arguments);
         }
