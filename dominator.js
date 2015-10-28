@@ -2,11 +2,19 @@ const events = {
     'onclick': 'click'
 };
 
+function router(routes){
+    let url = location.hash.slice(1) || '/';
+    let callback = routes[url];
+    callback();
+}
+
 function addCallbackEvents(callbackMap){
     callbackMap.forEach(function(event, id){
        for(let x in event){
             let node = document.getElementById(id);
-            node.addEventListener(x, event[x]);
+            if (!!node){
+                node.addEventListener(x, event[x]);
+            }
        }
     });
 }
@@ -167,6 +175,25 @@ function createHyperText(obj, storeFunc){
     return [open, closed];
 }
 
+class Router {
+    constructor(){
+        this.routes = {};
+    }
+    
+    addRoute(path, callback){
+        this.routes[path] = callback;
+    }
+    
+    run(){
+        let that = this;
+        window.onhashchange = function(){
+            router(that.routes)};
+        window.addEventListener('load', function(){
+            router(that.routes);
+        });
+    }
+}
+
 class Store {
     
     constructor(){
@@ -321,4 +348,4 @@ class Dominator {
     }
 }
 
-export {Store, Dominator};
+export {Store, Dominator, Router};
