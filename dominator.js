@@ -104,6 +104,9 @@ function createHyperText(obj, storeFunc){
         }
     }
     // build string from options object
+    if (!obj.options){
+        options += ('id=' + id + ' ');
+    }
     if (!!obj.options){
         if (!obj.options.id){
             options += ('id=' + id + ' ');
@@ -210,11 +213,13 @@ class Store {
                 for (let x in obj){
                     let newText = replaceTextWithStore(obj[x], that, true);
                     let node = document.getElementById(id);
-                    if (x === 'textContent'){
-                        node.textContent = newText;
-                    }
-                    else{
-                        node.setAttribute(x, newText);
+                    if (!!node){
+                        if (x === 'textContent'){
+                            node.textContent = newText;
+                        }
+                        else{
+                            node.setAttribute(x, newText);
+                        }    
                     }
                 }
             });
