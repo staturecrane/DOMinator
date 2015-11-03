@@ -1,6 +1,6 @@
 # DOMinator v.02
 
-A Javascript templating library which allows you to create components and subscribe to a reactive store. 
+A minimalist reactive Javascript templating library which allows you to forgo hypertext and its various ilk in favor of creating virtual components that subscribe to a central Map-based store. 
 
 #DEMO: A Basic Counter App
 
