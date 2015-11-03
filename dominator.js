@@ -30,6 +30,12 @@ function registerStoreCallbacks(store, func, callbackStore){
     };
 }
 
+function callMountFuncs(funcs){
+    funcs.forEach((item)=>{
+        item.call(this, arguments);
+    });
+}
+
 function addCallbackEvents(callbackMap){
     callbackMap.forEach(function(event, id){
        for(let x in event){
@@ -62,6 +68,10 @@ function replaceTextWithStore(text, func, update = void 0, subscribeArr = []){
         return replaceTextWithStore(newText, func, true);
     }
        
+}
+
+function addComponentHTML(elements, storeGrab, node){
+    node.innerHTML = createHTML(elements, storeGrab);
 }
 
 function createHTML(els, storeFunc){
@@ -297,6 +307,7 @@ class Dominator {
             storeSet: !store ? null : store.callbackLogger(),
             eventCallbacks: that.eventCallbacks,
         }
+        this.mounted = [];
     }
     
     createNode(node, text = void 0, options = void 0){
@@ -374,9 +385,15 @@ class Dominator {
         return this;
     }
     
+    didMount(...args){
+        args.forEach((item)=>this.mounted.push(item));
+        return this;
+    }
+    
     setHTML(node){
-        node.innerHTML = createHTML(this.elements, this.storeGrab);
+        addComponentHTML(this.elements, this.storeGrab, node);
         addCallbackEvents(this.eventCallbacks);
+        callMountFuncs(this.mounted);
     }
 
     
