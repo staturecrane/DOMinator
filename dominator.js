@@ -1,11 +1,33 @@
 const events = {
-    'onclick': 'click'
+    'onclick': 'click',
+    'onchange': 'change'
 };
 
 function router(routes){
     let url = location.hash.slice(1) || '/';
     let callback = routes[url];
     callback();
+}
+
+function registerStoreCallbacks(store, func, callbackStore){
+    callbackStore.set('test', 'test');
+    if (callbackStore.has(store)){
+        let callbacks = callbackStore.get(store);
+        if (callbacks.has('custom_callbacks')){
+            let customCallbacks = callbacks.get('custom_callbacks');
+            customCallbacks.push(func);
+            callbacks.set('custom_callbacks', customCallbacks);
+        }
+        else{
+            let customCallbacks = [func];
+            callbacks.set('custom_callbacks', customCallbacks);
+        }
+    }
+    else {
+        let newCallbacks = new Map();
+        newCallbacks.set('custom_callbacks', [func]);
+        callbackStore.set(store, newCallbacks);
+    };
 }
 
 function addCallbackEvents(callbackMap){
@@ -210,17 +232,22 @@ class Store {
         if (this.storeCallbacks.has(name)){
             let callbacks = this.storeCallbacks.get(name);
             callbacks.forEach(function(obj, id){
-                for (let x in obj){
-                    let newText = replaceTextWithStore(obj[x], that, true);
-                    let node = document.getElementById(id);
-                    if (!!node){
-                        if (x === 'textContent'){
-                            node.textContent = newText;
+                if (id === 'custom_callbacks'){
+                    obj.forEach((item)=>item.call(this, arguments));
+                }
+                else{
+                    for (let x in obj){
+                        let newText = replaceTextWithStore(obj[x], that, true);
+                        let node = document.getElementById(id);
+                        if (!!node){
+                            if (x === 'textContent'){
+                                node.textContent = newText;
+                            }
+                            else{
+                                node.setAttribute(x, newText);
+                            }    
                         }
-                        else{
-                            node.setAttribute(x, newText);
-                        }    
-                    }
+                    }   
                 }
             });
         }
@@ -241,7 +268,12 @@ class Store {
         let that = this;
         return function(){
             return that.storeCallbacks;
-        }
+        };
+    }
+    
+    registerCallback(store, func){
+        let that = this;
+        registerStoreCallbacks(store, func, that.storeCallbacks);
     }
     
     subscribe(storename){
@@ -261,8 +293,8 @@ class Dominator {
         this.childLevel = 0;
         this.eventCallbacks = new Map();
         this.storeGrab = {
-            getStore: store.getSubscription(),
-            storeSet: store.callbackLogger(),
+            getStore: !store ? null : store.getSubscription(),
+            storeSet: !store ? null : store.callbackLogger(),
             eventCallbacks: that.eventCallbacks,
         }
     }
