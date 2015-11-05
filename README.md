@@ -27,11 +27,10 @@ let buttons = dominator.createMany('button', [
     }]
 ]);
         
-let buttonDiv = dominator.addChildren(dominator.create('div'), buttons);
-
-let text = dominator.create('h1', 'up: {{up}} --- down: {{down}}');
-
-let component = [dominator.addChildren(dominator.create('div'), [text, buttonDiv])];
+let component = [dominator.addChild(dominator.create('div'), 
+    dominator.addChildren(dominator.create('div'),
+        [dominator.create('h1', 'up: {{up}} --- down: {{down}}'), 
+            ...buttons]))];
 
 dominator.setHTML(component, document.body);
 
