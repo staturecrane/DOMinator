@@ -56,16 +56,16 @@ function onDownClick(){
 Dominator is a reactive templating library that combines imperative and functional methods to build a DOM-like object and render it onto the page. Nodes subscribe to a Map-based store for reactive updates.
 
 ##Dominator.create(tag, text**(optional)**, attributeObject**(optional)**)
-takes any valid html tag, optional text, and an optional attributes object in the form of {attribute: value, ...} and returns a DOM object
+takes any valid html tag, optional text, and an optional attributes object in the form of {attribute: value, ...} and returns a DOM-like object
 
-##Dominator.createMany(tag, [[text**(optional)**, attributeObject]**(optional**), ...]**(optional)**)
-takes any valid HTML tag, along with an array of parameter arrays, returns array of DOM objects
+##Dominator.createMany(tag, [ [text, attributeObject], ...]**(optional)**)
+takes any valid HTML tag, along with an array of parameter arrays, returns array of DOM-like objects
 
 ##Dominator.addChild(parent, child)
-adds child to the parent and returns a merged DOM object
+returns merged DOM-like object
 
 ##Dominator.addChildren(parent, [children])
-adds all objects in children array as childs of the parent, returns a merged DOM object
+returns merged DOM-like object
 
 ##Dominator.setHTML(component, node)
-renders HTML onto given node
+takes an array of DOM-like objects and renders them as children onto given node
