@@ -1,6 +1,7 @@
 const events = {
     'onclick': 'click',
-    'onchange': 'change'
+    'onchange': 'change',
+    'onsubmit': 'submit'
 };
 
 function router(routes){
@@ -9,8 +10,44 @@ function router(routes){
     callback();
 }
 
+function createNode(node, text = void 0, options = void 0){
+    let n = {};
+    n.node = node;
+    // these checks are probably unnecessary if you have default args
+    if (!!text){
+        n.text = text;
+    }
+    if (!!options){
+        n.options = options;
+    }
+    return n;
+}
+
+function mergeNodes(parent, child){
+    let node = parent;
+    node.children ? node.children.push(child) : node.children = [child];
+    return node;
+}
+function addManyChildren(parent, children){
+    let node = parent;
+    let length = children.length;
+    for (let x = 0; x < length; x++){
+        node.children ? 
+            node.children.push(children[x]) : node.children = [children[x]];
+    }
+    return node;
+}
+
+function createManyNodes(node, childrenArr){
+    let newArr = [];
+    let length = childrenArr.length;
+    for (let x = 0; x < length; x++){
+        newArr.push(createNode(node, childrenArr[x][0], childrenArr[x][1] ? childrenArr[x][1] : void 0));
+    }
+    return newArr;
+}
+
 function registerStoreCallbacks(store, func, callbackStore){
-    callbackStore.set('test', 'test');
     if (callbackStore.has(store)){
         let callbacks = callbackStore.get(store);
         if (callbacks.has('custom_callbacks')){
@@ -309,80 +346,21 @@ class Dominator {
         }
         this.mounted = [];
     }
-    
-    createNode(node, text = void 0, options = void 0){
-        let n = {};
-        n.node = node;
-        // these checks are probably unnecessary if you have default args
-        if (!!text){
-            n.text = text;
-        }
-        if (!!options){
-            n.options = options;
-        }
-        return n;
+
+    create (node, text = void 0, options = void 0){
+        return createNode(node, text, options);
     }
     
-    create(node, text = void 0, options = void 0){
-        let n = this.createNode(node, text, options);
-        this.elements.push(n);
-        return this;
+    createMany(node, childrenArr){
+        return createManyNodes(node, childrenArr);
     }
     
-    // append finds the current childLevel of the your DOM tree and adds 
-    // children to to that branch, defaulting to the main node branches
-    // and only going deeper once appendNth has been called 
-    append(node, text = void 0, options = void 0, count = this.childLevel, 
-        parent = this.elements[this.elements.length-1]){
-            if (this.childLevel === 0){
-                let child = this.createNode(node, text, options);
-                let parent = this.elements[this.elements.length-1];
-                if (!!parent.children){
-                    parent.children.push(child);
-                }
-                else{
-                    parent.children = [child];
-                }
-                return this;            
-            }
-            if (count === 0){
-                let child = this.createNode(node, text, options);
-                if(!!parent.children){
-                    parent.children.push(child);
-                }
-                else{
-                    parent.children = [child];
-                }
-                return this;
-            }
-            count -= 1;
-            return this.append(node, text, options, count, parent.children[parent.children.length-1]);
-    }
-    // appendNth finds the deepest child node of the branch you're working on
-    // and adds a child to that branch. appendNth can only be used following
-    // the create and append methods.
-    appendNth(node, text = void 0, options = void 0, 
-        element = this.elements[this.elements.length-1].children[this.elements[this.elements.length-1].children.length-1]){
-        if (!element.children){
-            element.children = [this.createNode(node,text,options)];
-            this.childLevel += 1;
-            return this;
-        } 
-        return this.appendNth(node, text, options, element.children[element.children.length-1]);
+    addChildren(parent, children){
+        return addManyChildren(parent, children);
     }
     
-    // retreat allows you to move back the childLevel so you may append children
-    // to previous branches
-    retreat(){
-        this.childLevel -= 1;
-        return this;
-    }
-    
-    do(...args){
-        for (let x = 0; x < args.length; x++){
-            args[x].call(this, arguments);
-        }
-        return this;
+    addChild (parent, child){
+        return mergeNodes(parent, child);
     }
     
     didMount(...args){
@@ -390,8 +368,8 @@ class Dominator {
         return this;
     }
     
-    setHTML(node){
-        addComponentHTML(this.elements, this.storeGrab, node);
+    setHTML(elements, node){
+        addComponentHTML(elements, this.storeGrab, node);
         addCallbackEvents(this.eventCallbacks);
         callMountFuncs(this.mounted);
     }
