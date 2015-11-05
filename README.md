@@ -51,3 +51,21 @@ function onDownClick(){
 }
 
 ```
+#So How the Hell Does It Work?
+
+Dominator is a reactive templating library that combines imperative and functional methods to build a DOM-like object and render it onto the page. Nodes subscribe to a Map-based store for reactive updates.
+
+##Dominator.create(tag, text**(optional)**, attributeObject**(optional)**)
+takes any valid html tag, optional text, and an optional attributes object in the form of {attribute: value, ...} and returns a DOM object
+
+##Dominator.createMany(tag, [[text**(optional)**, attributeObject]**(optional**), ...]**(optional)**)
+takes any valid HTML tag, along with an array of parameter arrays, returns array of DOM objects
+
+##Dominator.addChild(parent, child)
+adds child to the parent and returns a merged DOM object
+
+##Dominator.addChildren(parent, [children])
+adds all objects in children array as childs of the parent, returns a merged DOM object
+
+##Dominator.setHTML(component, node)
+renders HTML onto given node
