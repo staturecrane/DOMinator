@@ -1,6 +1,6 @@
 # DOMinator v.03
 
-A Javascript templating library with virtual DOM and built-in store
+A reactive Javascript templating library with virtual DOM and built-in store
 
 #DEMO: A Basic Counter App
 
