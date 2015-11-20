@@ -1,7 +1,8 @@
 const events = {
     'onclick': 'click',
     'onchange': 'change',
-    'onsubmit': 'submit'
+    'onsubmit': 'submit',
+    'onkeyup' : 'keyup'
 };
 
 function router(routes){
@@ -13,7 +14,6 @@ function router(routes){
 function createNode(node, text = void 0, options = void 0){
     let n = {};
     n.node = node;
-    // these checks are probably unnecessary if you have default args
     if (!!text){
         n.text = text;
     }
@@ -28,12 +28,12 @@ function mergeNodes(parent, child){
     node.children ? node.children.push(child) : node.children = [child];
     return node;
 }
+
 function addManyChildren(parent, children){
     let node = parent;
     let length = children.length;
     for (let x = 0; x < length; x++){
-        node.children ? 
-            node.children.push(children[x]) : node.children = [children[x]];
+        node.children ? node.children.push(children[x]) : node.children = [children[x]];
     }
     return node;
 }
@@ -108,39 +108,19 @@ function replaceTextWithStore(text, func, update = void 0, subscribeArr = []){
 }
 
 function addComponentHTML(elements, storeGrab, node){
-    node.innerHTML = createHTML(elements, storeGrab);
-}
-
-function createHTML(els, storeFunc){
-    let newArr = [];
-    let length = els.length;
+    let length = elements.length;
     for (let x = 0; x < length; x++){
-        newArr.push(createHyperText(els[x], storeFunc));
+        node.appendChild(createHyperText(elements[x], storeGrab));
     }
-    return flattenArray(newArr, storeFunc);
-}
-
-function flattenArray(arr, storeFunc){
-    let string = '';
-    for (let x = 0; x < arr.length; x++){
-        if (Array.isArray(arr[x])){
-            string += flattenArray(arr[x]);
-        }
-        else{
-            string += arr[x];
-        }
-    }
-    return string;
 }
 
 function createHyperText(obj, storeFunc){
-    let options = '';
     let regMatch = /{{(.*?)}}/;
+    let node = document.createElement(obj.node);
     // for purposes of updating, every element needs an id, so we ensure that
     // it does
     let id = !obj.options ? Math.random() : !obj.options.id ? Math.random() : obj.options.id;
     let text = obj.text || '';
-    let store = storeFunc.getStore();
     let callbacks = storeFunc.storeSet();
     let eventCallbacks = storeFunc.eventCallbacks;
     if (!!text){
@@ -172,13 +152,14 @@ function createHyperText(obj, storeFunc){
             }
         }
     }
+    node.textContent = text;
     // build string from options object
     if (!obj.options){
-        options += ('id=' + id + ' ');
+        node.id = id;
     }
     if (!!obj.options){
         if (!obj.options.id){
-            options += ('id=' + id + ' ');
+            node.id = id;
         }
         for (let x in obj.options){
             if (!!events[x]){
@@ -194,7 +175,13 @@ function createHyperText(obj, storeFunc){
                     continue;
                 }
             }
-            let attribute = x;
+            let attribute;
+            if (x === 'class'){
+                attribute = 'className';
+            }
+            else {
+                attribute = x;
+            }
             if (regMatch.test(obj.options[x])){
                 // save the non-converted text, then run through replaceStore
                 let oldText = obj.options[x];
@@ -225,26 +212,21 @@ function createHyperText(obj, storeFunc){
                         callbacks.set(subscription[y], newCallbacksMap);
                     }
                 }
-                options += (x + '=' + attObject.text + ' ');
+                node[attribute] = obj.options[x];
             }
             else {
-                options += (x + '=' + obj.options[x] + ' ');
+                node[attribute] = obj.options[x];
             }
         }
     }
-    // build open tag
-    let open = !options ? ['<' + obj.node + '>' + text] : ['<' + obj.node + ' ' + options.trim() + '>' + text];
-    // build closed tag
-    let closed = ['</' + obj.node + '>'];
     if (!!obj.children){
-        let arr = [];
         // traverse tree and wrap all nested child arrays between tags
         for (let n = 0; n < obj.children.length; n++){
-            arr.push(createHyperText(obj.children[n], storeFunc));
+            node.appendChild(createHyperText(obj.children[n], storeFunc));
         }
-        return [open, arr, closed];
+        return node;
     }
-    return [open, closed];
+    return node;
 }
 
 class Router {
@@ -327,17 +309,11 @@ class Store {
         return '{{' + storename + '}}';
     }
     
-    testCallbackMap(){
-        console.log(this.storeCallbacks);
-    }
-    
 }
 
 class Dominator {
     constructor(store){
         let that = this;
-        this.elements = [];
-        this.childLevel = 0;
         this.eventCallbacks = new Map();
         this.storeGrab = {
             getStore: !store ? null : store.getSubscription(),
@@ -359,7 +335,7 @@ class Dominator {
         return addManyChildren(parent, children);
     }
     
-    addChild (parent, child){
+    addChild(parent, child){
         return mergeNodes(parent, child);
     }
     
@@ -368,15 +344,13 @@ class Dominator {
         return this;
     }
     
-    setHTML(elements, node){
+    setHTML(elements, node, callbacks = void 0){
+        node.innerHTML = '';
         addComponentHTML(elements, this.storeGrab, node);
         addCallbackEvents(this.eventCallbacks);
-        callMountFuncs(this.mounted);
-    }
-
-    
-    returnHTML(){
-        return createHTML(this.elements);
+        if (callbacks){
+            callMountFuncs(callbacks);
+        }
     }
 }
 
